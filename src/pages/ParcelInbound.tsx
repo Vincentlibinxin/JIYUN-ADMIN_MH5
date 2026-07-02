@@ -259,7 +259,10 @@ export default function ParcelInbound() {
 
       photos.forEach(file => fd.append('files', file));
 
-      await api.parcels.inbound(fd);
+      await api.parcels.inbound(fd, {
+        restoreIfDeleted: true,
+        updateExisting: true,
+      });
       navigate('/parcels', { replace: true });
     } catch (err: any) {
       setError(err.message || '入库失败，请重试');

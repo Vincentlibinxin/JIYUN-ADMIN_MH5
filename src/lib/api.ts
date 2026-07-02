@@ -78,7 +78,16 @@ export const api = {
     list: async (page = 1, limit = 5): Promise<{ data: any[]; pagination: any }> => {
       return requestJson(`/admin/parcels?page=${page}&limit=${limit}&sortKey=created_at&sortOrder=desc`);
     },
-    inbound: async (formData: FormData): Promise<{ message: string; parcelId: number }> => {
+    inbound: async (
+      formData: FormData,
+      options?: { restoreIfDeleted?: boolean; updateExisting?: boolean }
+    ): Promise<{ message: string; parcelId: number }> => {
+      if (options?.restoreIfDeleted) {
+        formData.set('restore_if_deleted', '1');
+      }
+      if (options?.updateExisting) {
+        formData.set('update_existing', '1');
+      }
       return requestJson('/admin/parcels/inbound', { method: 'POST', body: formData });
     },
   },
