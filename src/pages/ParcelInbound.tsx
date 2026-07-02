@@ -260,8 +260,8 @@ export default function ParcelInbound() {
       photos.forEach(file => fd.append('files', file));
 
       await api.parcels.inbound(fd, {
-        restoreIfDeleted: true,
-        updateExisting: true,
+        hardDeleteIfSoftDeleted: true,
+        inboundAsNew: true,
       });
       navigate('/parcels', { replace: true });
     } catch (err: any) {

@@ -80,13 +80,13 @@ export const api = {
     },
     inbound: async (
       formData: FormData,
-      options?: { restoreIfDeleted?: boolean; updateExisting?: boolean }
+      options?: { hardDeleteIfSoftDeleted?: boolean; inboundAsNew?: boolean }
     ): Promise<{ message: string; parcelId: number }> => {
-      if (options?.restoreIfDeleted) {
-        formData.set('restore_if_deleted', '1');
+      if (options?.hardDeleteIfSoftDeleted) {
+        formData.set('hard_delete_if_soft_deleted', '1');
       }
-      if (options?.updateExisting) {
-        formData.set('update_existing', '1');
+      if (options?.inboundAsNew) {
+        formData.set('inbound_as_new', '1');
       }
       return requestJson('/admin/parcels/inbound', { method: 'POST', body: formData });
     },
