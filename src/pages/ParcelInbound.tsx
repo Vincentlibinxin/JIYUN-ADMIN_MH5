@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { scanImageData, ZBarSymbolType } from '@undecaf/zbar-wasm';
 import { api } from '../lib/api';
+import { getSelectedLogisticsProvider } from '../lib/logistics';
 import styles from './ParcelInbound.module.css';
 
 interface ItemEntry {
@@ -27,6 +28,7 @@ const BARCODE_1D = new Set([
 
 export default function ParcelInbound() {
   const navigate = useNavigate();
+  const selectedProvider = getSelectedLogisticsProvider();
 
   // Form state
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -234,6 +236,10 @@ export default function ParcelInbound() {
   // --- Submit ---
   const handleSubmit = async () => {
     setError('');
+    if (!selectedProvider?.id) {
+      setError('未选择物流商，请返回登录页重新选择');
+      return;
+    }
     if (!trackingNumber.trim()) {
       setError('请输入或扫描包裹单号');
       return;
@@ -262,6 +268,7 @@ export default function ParcelInbound() {
       await api.parcels.inbound(fd, {
         hardDeleteIfSoftDeleted: true,
         inboundAsNew: true,
+        logisticsProviderId: selectedProvider.id,
       });
       navigate('/parcels', { replace: true });
     } catch (err: any) {
@@ -284,6 +291,7 @@ export default function ParcelInbound() {
 
         {/* Section 1: Tracking Number */}
         <div className={styles.section}>
+          <div className={styles.providerHint}>当前物流商：{selectedProvider?.name || `ID ${selectedProvider?.id || '-'}`}</div>
           <div className={styles.sectionTitle}>📦 包裹单号</div>
           <div className={styles.scanArea}>
             <div id={scanRegionId} className={styles.scanVideo} />

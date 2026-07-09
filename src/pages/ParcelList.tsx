@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
+import { getSelectedLogisticsProvider } from '../lib/logistics';
 import styles from './ParcelList.module.css';
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
@@ -34,18 +35,24 @@ export default function ParcelList() {
   const { logout } = useAuth();
   const [parcels, setParcels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedProvider = getSelectedLogisticsProvider();
 
   const loadParcels = useCallback(async () => {
+    const provider = getSelectedLogisticsProvider();
+    if (!provider?.id) {
+      navigate('/login', { replace: true });
+      return;
+    }
     setLoading(true);
     try {
-      const res = await api.parcels.list(1, 5);
+      const res = await api.parcels.list(1, 5, provider.id);
       setParcels(res.data || []);
     } catch {
       setParcels([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => { loadParcels(); }, [loadParcels]);
 
@@ -58,7 +65,10 @@ export default function ParcelList() {
     <div className={styles.page}>
       {/* Top bar */}
       <div className={styles.topBar}>
-        <div className={styles.topTitle}>📦 包裹管理</div>
+        <div>
+          <div className={styles.topTitle}>📦 包裹管理</div>
+          <div className={styles.providerTag}>🚚 {selectedProvider?.name || `物流商ID: ${selectedProvider?.id || '-'}`}</div>
+        </div>
         <button className={styles.logoutBtn} onClick={handleLogout}>退出</button>
       </div>
 

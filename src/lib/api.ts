@@ -5,6 +5,15 @@ export interface AdminUser {
   username: string;
   email: string;
   role: string;
+  logistics_provider_id?: number | null;
+  logistics_provider_name?: string | null;
+  permissions?: string[];
+}
+
+export interface LogisticsProviderOption {
+  id: number;
+  name: string;
+  code?: string;
 }
 
 export class ApiRequestError extends Error {
@@ -74,19 +83,36 @@ export const api = {
       await requestJson('/admin/logout', { method: 'POST' });
     },
   },
+  logistics: {
+    options: async (): Promise<LogisticsProviderOption[]> => {
+      const payload = await requestJson<any>('/admin/logistics/options');
+      const data = payload?.data ?? [];
+      return Array.isArray(data) ? data : [];
+    },
+  },
   parcels: {
-    list: async (page = 1, limit = 5): Promise<{ data: any[]; pagination: any }> => {
-      return requestJson(`/admin/parcels?page=${page}&limit=${limit}&sortKey=created_at&sortOrder=desc`);
+    list: async (page = 1, limit = 5, logisticsProviderId?: number): Promise<{ data: any[]; pagination: any }> => {
+      const providerQuery = logisticsProviderId && logisticsProviderId > 0
+        ? `&logistics_provider_id=${logisticsProviderId}`
+        : '';
+      return requestJson(`/admin/parcels?page=${page}&limit=${limit}&sortKey=created_at&sortOrder=desc${providerQuery}`);
     },
     inbound: async (
       formData: FormData,
-      options?: { hardDeleteIfSoftDeleted?: boolean; inboundAsNew?: boolean }
+      options?: {
+        hardDeleteIfSoftDeleted?: boolean;
+        inboundAsNew?: boolean;
+        logisticsProviderId?: number;
+      }
     ): Promise<{ message: string; parcelId: number }> => {
       if (options?.hardDeleteIfSoftDeleted) {
         formData.set('hard_delete_if_soft_deleted', '1');
       }
       if (options?.inboundAsNew) {
         formData.set('inbound_as_new', '1');
+      }
+      if (options?.logisticsProviderId && options.logisticsProviderId > 0) {
+        formData.set('logistics_provider_id', String(options.logisticsProviderId));
       }
       return requestJson('/admin/parcels/inbound', { method: 'POST', body: formData });
     },

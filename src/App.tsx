@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/auth';
+import { getSelectedLogisticsProvider } from './lib/logistics';
 import LoginPage from './pages/LoginPage';
 import ParcelList from './pages/ParcelList';
 import ParcelInbound from './pages/ParcelInbound';
@@ -8,11 +9,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { admin, loading } = useAuth();
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#94a3b8' }}>加载中...</div>;
   if (!admin) return <Navigate to="/login" replace />;
+  if (!getSelectedLogisticsProvider()) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 export default function App() {
   const { admin, loading } = useAuth();
+  const hasSelectedProvider = !!getSelectedLogisticsProvider();
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#94a3b8' }}>加载中...</div>;
@@ -20,10 +23,10 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={admin ? <Navigate to="/parcels" replace /> : <LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/parcels" element={<PrivateRoute><ParcelList /></PrivateRoute>} />
       <Route path="/parcels/inbound" element={<PrivateRoute><ParcelInbound /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to={admin ? '/parcels' : '/login'} replace />} />
+      <Route path="*" element={<Navigate to={admin && hasSelectedProvider ? '/parcels' : '/login'} replace />} />
     </Routes>
   );
 }

@@ -26,6 +26,12 @@
   letter-spacing: 1px;
 }
 
+.providerTag {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
 .logoutBtn {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
